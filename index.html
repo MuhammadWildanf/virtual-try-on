@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virtual Try-On</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0d0d0f;
+      --surface: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.08);
+      --accent: #FFFC00;
+      --accent-dim: rgba(255, 252, 0, 0.15);
+      --text: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.45);
+      --radius: 20px;
+    }
+
+    html,
+    body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Layout ── */
+    .app {
+      display: grid;
+      grid-template-rows: 56px 1fr auto;
+      height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(13, 13, 15, 0.8);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.3px;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .status-badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+    }
+
+    .status-badge.active {
+      background: rgba(0, 210, 100, 0.15);
+      border-color: rgba(0, 210, 100, 0.3);
+      color: #00d264;
+    }
+
+    /* ── Camera Area ── */
+    .camera-area {
+      position: relative;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Loading overlay */
+    .loading {
+      position: absolute;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 20;
+      transition: opacity 0.5s ease;
+    }
+
+    .loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loader-ring {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading p {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* Applying lens indicator */
+    .lens-indicator {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-60px);
+      background: rgba(13, 13, 15, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 15;
+      white-space: nowrap;
+    }
+
+    .lens-indicator.visible {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .lens-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.5s ease infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+      }
+    }
+
+    /* Error */
+    .error-toast {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(255, 60, 60, 0.9);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: transform 0.3s ease;
+      z-index: 20;
+      white-space: nowrap;
+    }
+
+    .error-toast.visible {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Bottom Panel ── */
+    .bottom-panel {
+      padding: 16px 20px 20px;
+      background: rgba(13, 13, 15, 0.9);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+    }
+
+    .panel-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    /* Clothes scroll */
+    .clothes-scroll {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .clothes-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .clothes-card {
+      flex: 0 0 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+    }
+
+    .clothes-thumb {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      background: var(--surface);
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .clothes-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 16px;
+    }
+
+    .clothes-card:hover .clothes-thumb {
+      border-color: rgba(255, 252, 0, 0.5);
+      transform: scale(1.07);
+    }
+
+    .clothes-card.active .clothes-thumb {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      transform: scale(1.05);
+      box-shadow: 0 0 0 4px rgba(255, 252, 0, 0.1);
+    }
+
+    .clothes-card.loading-lens .clothes-thumb::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 16px;
+    }
+
+    .clothes-card.loading-lens .clothes-thumb::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      z-index: 2;
+    }
+
+    .clothes-name {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 72px;
+      transition: color 0.2s;
+    }
+
+    .clothes-card.active .clothes-name {
+      color: var(--accent);
+    }
+
+    /* Remove button */
+    .btn-remove {
+      width: 100%;
+      margin-top: 14px;
+      padding: 11px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-remove:hover {
+      background: var(--surface);
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-remove:active {
+      transform: scale(0.98);
+    }
+
+    /* Powered by */
+    .powered-by {
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      opacity: 0.5;
+    }
+
+    /* Swipe hint */
+    .swipe-hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      opacity: 0;
+      background: rgba(13, 13, 15, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 15;
+    }
+
+    .swipe-hint.visible {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* Gesture status dot */
+    .gesture-status {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(13, 13, 15, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      z-index: 15;
+    }
+
+    .gesture-dot {
+      font-size: 14px;
+      line-height: 1;
+      transition: transform 0.2s ease;
+    }
+
+    .gesture-status.detected .gesture-dot {
+      transform: scale(1.2);
+    }
+
+    .gesture-status.detected {
+      color: var(--text);
+      border-color: rgba(0, 210, 100, 0.3);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header>
+      <div class="logo">
+        <div class="logo-icon">👕</div>
+        Virtual Try-On
+      </div>
+      <div class="status-badge" id="status-badge">Memuat...</div>
+    </header>
+
+    <!-- Camera -->
+    <div class="camera-area">
+      <canvas id="canvas"></canvas>
+
+      <!-- Loading -->
+      <div class="loading" id="loading">
+        <div class="loader-ring"></div>
+        <p>Menyiapkan kamera AR...</p>
+      </div>
+
+      <!-- Lens indicator -->
+      <div class="lens-indicator" id="lens-indicator">
+        <span class="lens-dot"></span>
+        <span id="lens-indicator-text">Memuat pakaian...</span>
+      </div>
+
+      <!-- Swipe hint overlay -->
+      <div class="swipe-hint" id="swipe-hint"></div>
+
+      <!-- Gesture status -->
+      <div class="gesture-status" id="gesture-status">
+        <div class="gesture-dot">·</div>
+        <span>Gesture</span>
+      </div>
+
+      <!-- Error -->
+      <div class="error-toast" id="error-toast">⚠️ Gagal memuat. Coba refresh halaman.</div>
+    </div>
+
+    <!-- Bottom Panel -->
+    <div class="bottom-panel">
+      <div class="panel-label" id="panel-label">Pilih Pakaian</div>
+      <div class="clothes-scroll" id="clothes-scroll">
+        <!-- Rendered by JS -->
+      </div>
+      <button class="btn-remove" id="btn-remove" onclick="window.removeLens()">
+        <span>✕</span> Lepas Pakaian
+      </button>
+      <div class="powered-by">Powered by Snap Camera Kit</div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
