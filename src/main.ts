@@ -8,7 +8,7 @@ import { HandLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 // staging 
 // const API_TOKEN = "eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNzcyNjMzMDg5LCJzdWIiOiJmYWY3YTYwZS02NjQ1LTQ3NzYtYWRmNi0xMDRlMmRhOWQyOWV-U1RBR0lOR34zZGUyZWU2Ni03M2UxLTQ4MjEtODAxMC03Mzc5ZDVjM2M5MzIifQ.x3GUEUExf5HRLKpg3WHbWVAHUgx9ttpfmLuoJH_egzo";
 // production
-const API_TOKEN = "eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNzcyNjMzMDkwLCJzdWIiOiJmYWY3YTYwZS02NjQ1LTQ3NzYtYWRmNi0xMDRlMmRhOWQyOWV-UFJPRFVDVElPTn5jY2I0Zjk0Yy05MWY5LTRiYjMtYmE0NC1mNzA2MDBkNGNlZmIifQ.l3tuwLGIv1YYmkvCXl4YxS8VyPLDp36eMPFyEbYGQd0";
+const API_TOKEN = "eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNzcyNjMzMDg5LCJzdWIiOiJmYWY3YTYwZS02NjQ1LTQ3NzYtYWRmNi0xMDRlMmRhOWQyOWV-U1RBR0lOR34zZGUyZWU2Ni03M2UxLTQ4MjEtODAxMC03Mzc5ZDVjM2M5MzIifQ.x3GUEUExf5HRLKpg3WHbWVAHUgx9ttpfmLuoJH_egzo"; // Staging Token
 
 
 // Group ID — ImajiwaLAB Lenses (Camera Kit Staging sudah Enabled!)
@@ -286,7 +286,8 @@ async function initGestureDetection(stream: MediaStream) {
     session = await cameraKit.createSession({ liveRenderTarget: canvas });
 
     const mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+      // Meminta resolusi FHD (1920x1080) / rasio 16:9 agar tidak berbentuk kotak (4:3)
+      video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1080 } },
     });
 
     const source = createMediaStreamSource(mediaStream, {
