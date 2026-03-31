@@ -6,9 +6,9 @@ import { HandLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 // KONFIGURASI
 // ============================================================
 // staging 
-// const API_TOKEN = "eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNzcyNjMzMDg5LCJzdWIiOiJmYWY3YTYwZS02NjQ1LTQ3NzYtYWRmNi0xMDRlMmRhOWQyOWV-U1RBR0lOR34zZGUyZWU2Ni03M2UxLTQ4MjEtODAxMC03Mzc5ZDVjM2M5MzIifQ.x3GUEUExf5HRLKpg3WHbWVAHUgx9ttpfmLuoJH_egzo";
-// production
-const API_TOKEN = "eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNzcyNjMzMDg5LCJzdWIiOiJmYWY3YTYwZS02NjQ1LTQ3NzYtYWRmNi0xMDRlMmRhOWQyOWV-U1RBR0lOR34zZGUyZWU2Ni03M2UxLTQ4MjEtODAxMC03Mzc5ZDVjM2M5MzIifQ.x3GUEUExf5HRLKpg3WHbWVAHUgx9ttpfmLuoJH_egzo"; // Staging Token
+// const API_TOKEN = "eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNzcyNjMzMDg5LCJzdWIiOiJmYWY3YTYwZS02NjQ1LTQ3NzYtYWRmNi0xMDRlMmRhOWQyOWV-U1RBR0lOR34zZGUyZWU2Ni03M2UxLTQ4MjEtODAxMC03Mzc5ZDVjM2M5MzIifQ.x3GUEUExf5HRLKpg3WHbWVAHUgx9ttpfmLuoJH_egzo"; // Staging Token
+// Production token
+const API_TOKEN = "eyJhbGciOiJIUzI1NiIsImtpZCI6IkNhbnZhc1MyU0hNQUNQcm9kIiwidHlwIjoiSldUIn0.eyJhdWQiOiJjYW52YXMtY2FudmFzYXBpIiwiaXNzIjoiY2FudmFzLXMyc3Rva2VuIiwibmJmIjoxNzcyNjMzMDkwLCJzdWIiOiJmYWY3YTYwZS02NjQ1LTQ3NzYtYWRmNi0xMDRlMmRhOWQyOWV-UFJPRFVDVElPTn5jY2I0Zjk0Yy05MWY5LTRiYjMtYmE0NC1mNzA2MDBkNGNlZmIifQ.l3tuwLGIv1YYmkvCXl4YxS8VyPLDp36eMPFyEbYGQd0"; // Production token
 
 
 // Group ID — ImajiwaLAB Lenses (Camera Kit Staging sudah Enabled!)
